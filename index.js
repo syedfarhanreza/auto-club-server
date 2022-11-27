@@ -17,6 +17,25 @@ const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@clu
 
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
+function verifyJWT(req, res, next) {
+
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+        return res.status(401).send('unauthorized access');
+    }
+
+    const token = authHeader.split(' ')[1];
+
+    jwt.verify(token, process.env.ACCESS_TOKEN, function (err, decoded) {
+        if (err) {
+            return res.status(403).send({ message: 'forbidden access' })
+        }
+        req.decoded = decoded;
+        next();
+    })
+
+}
+
 async function run(){
     try{
         const audiCollection = client.db('autoClub').collection('audiCars');
@@ -42,6 +61,23 @@ async function run(){
             const result = await benzCollection.find(query).toArray();
             res.send(result);
         });
+
+        app.post('/audis', async (req, res) => {
+            const data = req.body;
+            const result = await audiCollection.insertOne(data);
+            res.send(result);
+        });
+        app.post('/hondas', async (req, res) => {
+            const data = req.body;
+            const result = await hondaCollection.insertOne(data);
+            res.send(result);
+        });
+        app.post('/mercedess', async (req, res) => {
+            const data = req.body;
+            const result = await benzCollection.insertOne(data);
+            res.send(result);
+        });
+
         app.get('/jwt', async(req, res) => {
             const email = req.query.email;
             const query = {email: email}
@@ -51,7 +87,21 @@ async function run(){
                 return res.send({accessToken: token})
             }
             res.status(403).send({accessToken: ''})
-        })
+        });
+
+        app.get('/users', async (req, res) => {
+            const email = req.query.email;
+            const query = { email: email };
+            const result = await usersCollection.find(query).toArray();
+            res.send(result);
+        });
+
+        app.get('/user', async (req, res) => {
+            const role = req.query.role;
+            const query = { role: role };
+            const result = await usersCollection.find(query).toArray();
+            res.send(result);
+        });
 
         app.post('/users', async (req, res) => {
             const user = req.body;
@@ -59,12 +109,30 @@ async function run(){
             res.send(result);
         });
 
+        app.get('/bookings', verifyJWT, async (req, res) => {
+            const email = req.query.email;
+            console.log('token',req.headers.authorization);
+            const decodedEmail = req.decoded.email;
+
+            if (email !== decodedEmail) {
+                return res.status(403).send({ message: 'forbidden access' });
+            }
+
+            const query = { email: email };
+            const result = await bookingsCollection.find(query).toArray();
+            res.send(result);
+        });
+
+
         app.post('/bookings', async (req, res) => {
             const booking = req.body;
             console.log(booking);
             const result = await bookingsCollection.insertOne(booking);
             res.send(result);
         });
+
+       
+     
     }
     finally{    
 
