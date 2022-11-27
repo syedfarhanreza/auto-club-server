@@ -22,6 +22,7 @@ async function run(){
         const hondaCollection = client.db('autoClub').collection('hondaCars');
         const benzCollection = client.db('autoClub').collection('benzCars');
         const usersCollection = client.db('autoClub').collection('users');
+        const bookingsCollection = client.db('autoClub').collection('booking');
 
         app.get('/audis', async (req, res) => {
             const query = {};
@@ -44,6 +45,13 @@ async function run(){
         app.post('/users', async (req, res) => {
             const user = req.body;
             const result = await usersCollection.insertOne(user);
+            res.send(result);
+        });
+
+        app.post('/bookings', async (req, res) => {
+            const booking = req.body;
+            console.log(booking);
+            const result = await bookingsCollection.insertOne(booking);
             res.send(result);
         });
     }
