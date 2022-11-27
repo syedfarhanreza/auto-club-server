@@ -13,7 +13,7 @@ app.use(express.json())
 
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.0neovd0.mongodb.net/?retryWrites=true&w=majority`;
-console.log(uri)
+
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
 async function run(){
@@ -21,6 +21,7 @@ async function run(){
         const audiCollection = client.db('autoClub').collection('audiCars');
         const hondaCollection = client.db('autoClub').collection('hondaCars');
         const benzCollection = client.db('autoClub').collection('benzCars');
+        const usersCollection = client.db('autoClub').collection('users');
 
         app.get('/audis', async (req, res) => {
             const query = {};
@@ -39,12 +40,18 @@ async function run(){
             const result = await benzCollection.find(query).toArray();
             res.send(result);
         });
+
+        app.post('/users', async (req, res) => {
+            const user = req.body;
+            const result = await usersCollection.insertOne(user);
+            res.send(result);
+        });
     }
-    finally{
+    finally{    
 
     }
 }
-run().catch(console.log())
+run().catch(console.log)
 
 
 app.get('/', async(req, res) => {
