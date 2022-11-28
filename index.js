@@ -44,6 +44,7 @@ async function run(){
         const benzCollection = client.db('autoClub').collection('benzCars');
         const usersCollection = client.db('autoClub').collection('users');
         const bookingsCollection = client.db('autoClub').collection('booking');
+        const paymentsCollection = client.db('autoClub').collection('payments');
 
         app.get('/audis', async (req, res) => {
             const query = {};
@@ -168,6 +169,19 @@ async function run(){
             const booking = req.body;
             console.log(booking);
             const result = await bookingsCollection.insertOne(booking);
+            res.send(result);
+        });
+
+        app.get('/allusers', async (req, res) => {
+            const query = {};
+            const result = await usersCollection.find(query).toArray();
+            res.send(result);
+        });
+
+        app.delete('/allUsers/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const result = await usersCollection.deleteOne(query);
             res.send(result);
         });
 
